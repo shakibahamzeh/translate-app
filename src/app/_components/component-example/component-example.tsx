@@ -1,0 +1,1 @@
+// Create a general component

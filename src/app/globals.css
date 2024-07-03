@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    direction: rtl;
+}
+
+@media (prefers-color-scheme: dark) {
+}
+
+@layer utilities {
+
+}

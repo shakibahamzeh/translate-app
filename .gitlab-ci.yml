@@ -1,0 +1,127 @@
+stages:
+  - build
+  - test
+  - push
+  - deployment
+  - cleanup
+  - pull
+
+before_script:
+  - IMAGETAG=${CI_COMMIT_TAG}
+  - export IMAGETAG=${IMAGETAG%%-deploy}
+  - export commit_image_name=imagedocker.partdp.ir/frontend/TEAM_PROJ_SERVICE:$CI_COMMIT_SHORT_SHA
+  - export tag_image_name=imagedocker.partdp.ir/frontend/TEAM_PROJ_SERVICE:$IMAGETAG
+  - echo $tag_image_name
+  - echo $IMAGETAG
+
+variables:
+  commit_image_name: imagedocker.partdp.ir/frontend/TEAM_PROJ_SERVICE:${CI_COMMIT_SHORT_SHA}
+  tag_image_name: imagedocker.partdp.ir/frontend/TEAM_PROJ_SERVICE:${CI_COMMIT_TAG}
+
+build_image:
+  stage: build
+  tags:
+    - build
+  script:
+    - export DOCKER_BUILDKIT=1
+    - docker build -t ${commit_image_name,,} .
+  when: always
+
+test:
+  stage: test
+  needs: [build_image]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - test
+  script:
+    - echo
+  when: on_success
+  #allow_failure: true
+
+eslint_test:
+  stage: test
+  needs: [test]
+  tags:
+    - test
+  variables:
+    GIT_STRATEGY: none
+
+  script:
+    #- docker run ${commit_image_name,,} sh -c "npm run lint"
+    - echo
+
+push_image:
+  stage: push
+  needs: [eslint_test]
+  tags:
+    - push
+  variables:
+    GIT_STRATEGY: none
+  only:
+    - tags
+  script:
+    - docker tag ${commit_image_name,,} ${tag_image_name,,}
+    - docker push ${tag_image_name,,}
+    - echo "finished"
+  when: on_success
+
+deploy_test:
+  stage: deployment
+  needs: [push_image]
+  tags:
+    - deploy
+  only:
+    - tags
+  script:
+    - export CIAUTHOR=$(echo ${CI_COMMIT_AUTHOR} | grep -o '^[^<@]\+')
+    - |
+      if echo $CI_COMMIT_TAG | grep  '\-deploy$'  >/dev/null; then
+        echo -e "\nTriggered\n"
+        curl -X POST --fail -F token=${IMAGEPIPELINETOKEN} -F ref=${IMAGEPIPELINEBRANCH} -F "variables[COMMITTAG]=$CI_COMMIT_TAG"  -F "variables[IMAGETAG]=$IMAGETAG" -F "variables[CIAUTHOR]=$CIAUTHOR" https://gitlab.partdp.ir/api/v4/projects/${PROJECTID}/trigger/pipeline
+      fi
+
+# a YAML anchor reduces repetition
+.cleanup_job: &cleanup_job
+  stage: cleanup
+  tags:
+    - clean
+  variables:
+    GIT_STRATEGY: none
+
+  script:
+    #- cd __tests__/compose/ && docker compose down && cd ../..
+    - docker rmi -f ${commit_image_name,,}
+    - docker image list
+
+cleanup_deployment_success:
+  when: on_success
+  <<: *cleanup_job
+
+cleanup_deployment_failure:
+  when: on_failure
+  <<: *cleanup_job
+
+pull_image:
+  stage: pull
+  variables:
+    GIT_STRATEGY: none
+  needs: [push_image]
+  tags:
+    - pull
+  only:
+    - tags
+  script:
+    - docker rmi -f ${tag_image_name,,}
+    - docker image list
+    - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $VM_IPADDRESS >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - ssh ${SSH_USER}@${VM_IPADDRESS} "docker pull ${tag_image_name,,}"
+    - ssh ${SSH_USER}@${VM_IPADDRESS} "docker images "
+
+include: 'https://devsecops.partdp.ir/sast/sast-template.yml'

@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import Textarea from '../textarea/textarea'
 import Button from '../button/button'
 import { Copy, VolumeHigh } from 'iconsax-react'
+import { useQuery } from '@tanstack/react-query'
+import Translate from '@/core/translate.services'
 
 const Card = () => {
     const [text , setText] = useState('')
@@ -10,11 +12,15 @@ const Card = () => {
     if(text.length < 500){
      setText(e.target.value);
     }
-    console.log(text);
     };
     const handleClick = () => {
     alert('Button clicked!');
     };
+
+    const { data , refetch} = useQuery({ queryKey: ['getTranslate',text], queryFn: async () => await new Translate().getTranslate({params : { q : text, langpair: 'en|fr'}})});
+    
+    console.log(data);
+    
   return (
     <div className='h-96 bg-[#040711] rounded-2xl p-8'>
         <header className='text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold'>
@@ -41,7 +47,7 @@ const Card = () => {
                 </div>
                 
             </div>
-            <Button onClick={handleClick} variant="primary">Translate</Button>
+            <Button onClick={()=> refetch()} variant="primary">Translate</Button>
         </div>
     </div>
   )

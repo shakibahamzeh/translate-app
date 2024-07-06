@@ -3,7 +3,7 @@ import axios from "axios";
 // import packages>
 
 // <import types
-import { Request, Response } from "../types/services.types";
+import { Request, Response } from '../types/services.types';
 // import types>
 
 class ApiHandlersModel {
@@ -41,7 +41,7 @@ class ApiHandlersModel {
 
                     if (response.data) {
 
-                        return {type : true, message : response.data.message, data : response.data.data};
+                        return {type : true, message : response.data.message, data : response.data};
 
                     } else {
 

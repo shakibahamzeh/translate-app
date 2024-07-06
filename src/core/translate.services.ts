@@ -1,34 +1,30 @@
 // <import handler
-import axios,{ AxiosResponse } from "axios";
 import requestModel from "./apiHandlers";
 // import handler>
-import { Request } from "@/types/services.types";
-interface TranslateParams {
-  [key: string]: any;
-}
 
-interface TranslateRequest {
-  params: TranslateParams;
-}
+// <import types
+import { ReqApi, Request } from "../types/services.types";
+// import types>
+
 class Translate {
-  private requestObj: Request;
-  private url: string;
-    constructor(requestObj : Request) {
-        this.requestObj = requestObj;
+
+    url: string;
+
+    constructor() {
         this.url = "get";
     }
 
-    async getTranslate({ params }: TranslateRequest): Promise<AxiosResponse<any>> {
+    async getTranslate({params} : ReqApi) {
 
-        const apiObj = {
-            url : this.url,
+        const apiObj : Request = {
+            url : this.url ,
             params
         };
 
         return await requestModel.response(apiObj);
     };
 
+
 };
 
 export default Translate;
-

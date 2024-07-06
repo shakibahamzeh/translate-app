@@ -12,8 +12,6 @@ interface Request {
 }
 
 interface ReqApi {
-    id ?: reqId,
-    id2 ?: reqId,
     params ?: object,
     body ?: object
 }

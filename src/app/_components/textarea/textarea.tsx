@@ -1,5 +1,3 @@
-// components/Textarea.tsx
-
 import React from 'react';
 
 type TextareaProps = {
@@ -45,13 +43,3 @@ const Textarea: React.FC<TextareaProps> = ({
 };
 
 export default Textarea;
-
-
-// fetch('https://api.mymemory.translated.net/get?q=Hello,%20how%20are%20you?!&langpair=en|fr')
-//   .then(response => response.json())
-//   .then(data => {
-//     console.log(data)
-//   })
-//   .catch(error => {
-//     console.log(error)
-//   })

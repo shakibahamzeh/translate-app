@@ -12,15 +12,11 @@ class ApiHandlersModel {
 
         const {method = "get", url, reqObj = null, params = null, contentType = "application/json" , baseRoute = "root"} = requestObj;
 
-        const token = localStorage.getItem("token");
-
         const defaultReqObj = {
             method,
             url : `${process.env.NEXT_PUBLIC_BASE_ROOT}${url}`,
             headers : {
-                "accept": "application/json",
                 "Content-Type": contentType,
-                "Authorization" : token
             },
             params
         };

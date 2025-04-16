@@ -63,7 +63,6 @@ const Card: React.FC = () => {
         <Textarea  
         value={text}
         onChange={handleChange}
-        placeholder="Enter your text here..."
         className='w-full pt-6 text-sm resize-none min-h-[200px] bg-transparent text-white placeholder:text-[white] outline-none'
         maxLength={500}
         length={text.length}

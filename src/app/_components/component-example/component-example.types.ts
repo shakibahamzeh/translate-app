@@ -1,1 +1,0 @@
-// Put specific _types for the component-example here

@@ -10,7 +10,7 @@ const useStore = create<StoreState>((set) => ({
   setLanguage: (lang : string) => set({ language: lang }),
   toLanguage:'fr',
   setToLanguage:(lang : string) => set({toLanguage : lang}),
-  text : "",
+  text : "Hello, how are you?",
   setText: (text : string) => set({text : text}),
   answer :"",
   setAnswer:(answer : string) => set({answer : answer})

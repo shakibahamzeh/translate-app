@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useState } from 'react'
 import Textarea from '../textarea/textarea'
 import Button from '../button/button'
 import { Copy, VolumeHigh } from 'iconsax-react'
@@ -7,33 +7,34 @@ import { useMutation } from '@tanstack/react-query'
 import Translate from '@/core/translate.services'
 import { Language } from "./card.types"
 import useStore from '@/store/useStore'
+import toast from 'react-hot-toast'
+
+const languages: Language[] = [
+  { id: 0, lang: "Detect Language", keyLang: "autodetect" },
+  { id: 1, lang: "English", keyLang: "en" },
+  { id: 2, lang: "French", keyLang: "fr" },
+  { id: 3, lang: "Spanish", keyLang: "es" }
+];
 
 const Card: React.FC = () => {
-  const languages: Language[] = [
-    { id: 0, lang: "Detect Language", keyLang: "autodetect"},
-    { id: 1, lang: "English", keyLang: "en" },
-    { id: 2, lang: "French", keyLang: "fr" },
-    { id: 3, lang: "Spanish", keyLang: "es" }
-  ];
-
   const {
     language, setLanguage,
-    toLanguage, setToLanguage,
+    toLanguage,
     text, setText,
-    answer, setAnswer
+    setAnswer
   } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
     toLanguage: state.toLanguage,
-    setToLanguage: state.setToLanguage,
     text: state.text,
     setText: state.setText,
-    answer: state.answer,
     setAnswer: state.setAnswer
   }));
 
+  const [copied, setCopied] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (text.length < 500) {
+    if (e.target.value.length <= 500) {
       setText(e.target.value);
     }
   };
@@ -55,30 +56,44 @@ const Card: React.FC = () => {
 
   const handleSpeak = () => {
     if (!text) return;
-  
+
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => v.lang.startsWith(language));
-  
+
     if (voice) utterance.voice = voice;
     utterance.lang = language;
     window.speechSynthesis.speak(utterance);
   };
+
+  const handleCopy = () => {
+    if (!text) return;
   
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopied(true)
+        toast.success("Copied to clipboard!");
+      })
+      .catch(err => {
+        toast.error("Failed to copy text.");
+      });
+  };
+  
+
   return (
-    <div className='h-96 bg-[#040711] rounded-2xl p-8 lg:w-[500px]'>
-      <header className='text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold'>
+    <div className='h-96 bg-[#040711] rounded-2xl p-8 lg:w-[600px]'>
+      <ul className='text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold'>
         {languages.map(lang => (
           <li
             key={lang.id}
             className={`list-none text-sm cursor-pointer px-2 py-1 rounded-md transition-all duration-200
-                ${language === lang.keyLang ? 'bg-red-500 text-white' : ''}`}
+              ${language === lang.keyLang ? 'bg-red-500 text-white' : ''}`}
             onClick={() => setLanguage(lang.keyLang)}
           >
             {lang.lang}
           </li>
         ))}
-      </header>
+      </ul>
 
       <Textarea
         value={text}
@@ -90,18 +105,22 @@ const Card: React.FC = () => {
 
       <div className='w-full flex justify-between mt-4 items-center'>
         <div className='flex gap-x-4'>
-          <div className='p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer'     onClick={handleSpeak}>
-            <VolumeHigh size="18" color="#4D5562" />
-          </div>
           <div
             className='p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer'
-            onClick={() => {
-             navigator.clipboard.writeText(text);
-            }}
+            onClick={handleSpeak}
           >
-            <Copy size="18" color="#4D5562" />
+            <VolumeHigh size="18" color="#4D5562" />
+          </div>
+
+          <div
+            className={`p-1 border ${copied ? 'border-green-500' : 'border-[#4D5562]'} flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer`}
+            onClick={handleCopy}
+            title={copied ? "Copied!" : "Copy text"}
+          >
+            <Copy size="18" color={copied ? "#22c55e" : "#4D5562"} />
           </div>
         </div>
+
         <Button onClick={() => mutate()} variant="primary">
           {isPending ? "Translating..." : "Translate"}
         </Button>

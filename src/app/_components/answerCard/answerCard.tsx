@@ -1,88 +1,110 @@
 "use client"
-import React, { useState } from 'react'
-import Textarea from '../textarea/textarea'
-import Button from '../button/button'
+import React, { useState, useEffect } from 'react'
 import { Copy, VolumeHigh } from 'iconsax-react'
-import { useQuery } from '@tanstack/react-query'
-import Translate from '@/core/translate.services'
-import { Language } from '../translateCard/card.types'
 import useStore from '@/store/useStore'
+import { Language } from '../translateCard/card.types'
+import toast from 'react-hot-toast'
+
+// خارج از کامپوننت برای جلوگیری از تعریف مجدد
+const languages: Language[] = [
+  { id: 1, lang: "English", keyLang: "en" },
+  { id: 2, lang: "French", keyLang: "fr" },
+  { id: 3, lang: "Spanish", keyLang: "es" }
+];
 
 const AnswerCard = () => {
+  const { toLanguage, setToLanguage, answer, setAnswer } = useStore((state) => ({
+    toLanguage: state.toLanguage,
+    setToLanguage: state.setToLanguage,
+    answer: state.answer,
+    setAnswer: state.setAnswer
+  }));
+
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const synthVoices = window.speechSynthesis.getVoices();
+      setVoices(synthVoices);
+    };
+
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+    };
+  }, []);
+
+  const handleCopyToClipboard = () => {
+    if (answer) {
+      navigator.clipboard.writeText(answer)
+        .then(() => {
+          setCopied(true);
+          toast.success("Copied to clipboard!");
+          setTimeout(() => setCopied(false), 1500); // بازخورد موقت
+        })
+        .catch(() => {
+          toast.error("Failed to copy text.");
+        });
+    }
+  };
   
-    const languages: Language[] = [
-        {id : 1 , lang : "English" , keyLang : "en"},
-        {id : 2 , lang : "French" , keyLang : "fr"},
-        {id : 3 , lang : "Spanish" , keyLang : "es"}
-    ]
+  const handleSpeak = () => {
+    if (!answer) return;
 
-    const { toLanguage, setToLanguage , answer, setAnswer} = useStore((state) => ({
-        toLanguage: state.toLanguage,
-        setToLanguage: state.setToLanguage,
-        answer : state.answer,
-        setAnswer : state.setAnswer
-      }));
+    const utterance = new SpeechSynthesisUtterance(answer);
+    const voice = voices.find(v => v.lang.startsWith(toLanguage)); // امن‌تر
 
-      const handleCopyToClipboard = () => {
-        if (answer) {
-          navigator.clipboard.writeText(answer)
-            .then(() => {
-              console.log("Copied to clipboard successfully!");
-              // Optionally, you could show a notification or some feedback to the user here
-            })
-            .catch((err) => {
-              console.error("Failed to copy: ", err);
-            });
-        }
-      };
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = toLanguage;
+    }
 
-      const handleSpeak = () => {
-        if (!answer) return;
-      
-        const utterance = new SpeechSynthesisUtterance(answer);
-        const voices = window.speechSynthesis.getVoices();
-        const voice = voices.find(v => v.lang.startsWith(toLanguage)); // مثلاً 'fr' یا 'en'
-      
-        if (voice) utterance.voice = voice;
-        utterance.lang = toLanguage;
-        window.speechSynthesis.speak(utterance);
-      };
-      
-      
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
-    <div className='h-96 bg-[#040711] rounded-2xl p-8 lg:w-[500px]'>
-        <header className='text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold'>
-          {languages.map(lang => (
-            <li
-              key={lang.id}
-              className={`list-none text-sm cursor-pointer px-2 py-1 rounded-md transition-all duration-200
-                ${toLanguage === lang.keyLang ? 'bg-red-500 text-white' : ''}`}
-              onClick={() => setToLanguage(lang.keyLang)}
-            >
-              {lang.lang}
-            </li>
-          ))}
-        </header>
-        <p className='min-h-[200px] pt-6 text-white'>{answer}</p>
-        <div className='w-full flex justify-between mt-10 items-center'>
-            <div className='flex gap-x-4'>
-            <div
-              className='p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer'
-              onClick={handleSpeak}
-            >
-              <VolumeHigh size="18" color="#4D5562" />
-            </div>
+    <div className="h-96 bg-[#040711] rounded-2xl p-8 lg:w-[600px]">
+      <ul className="text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold">
+        {languages.map(lang => (
+          <li
+            key={lang.id}
+            className={`list-none text-sm cursor-pointer px-2 py-1 rounded-md transition-all duration-200 ${
+              toLanguage === lang.keyLang ? 'bg-red-500 text-white' : ''
+            }`}
+            onClick={() => setToLanguage(lang.keyLang)}
+          >
+            {lang.lang}
+          </li>
+        ))}
+      </ul>
 
-                  <div
-                    className='p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer'
-                    onClick={() => {
-                    navigator.clipboard.writeText(answer);
-                    }}
-                  >
-                    <Copy size="18" color="#4D5562" />
-                  </div>
-            </div>
+      <p className="min-h-[200px] pt-6 text-white">
+        {answer || <span className="text-[#4D5562]">Translation will appear here...</span>}
+      </p>
+
+      <div className="w-full flex justify-between mt-10 items-center">
+        <div className="flex gap-x-4">
+          <div
+            className="p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer"
+            onClick={handleSpeak}
+          >
+            <VolumeHigh size="18" color="#4D5562" />
+          </div>
+
+          <div
+            className={`p-1 border ${copied ? 'border-green-500' : 'border-[#4D5562]'} flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer`}
+            onClick={handleCopyToClipboard}
+            title={copied ? "Copied!" : "Copy to clipboard"}
+          >
+            <Copy size="18" color={copied ? "#22c55e" : "#4D5562"} />
+          </div>
         </div>
+      </div>
     </div>
   )
 }

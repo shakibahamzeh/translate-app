@@ -5,7 +5,6 @@ import useStore from '@/store/useStore'
 import { Language } from '../translateCard/card.types'
 import toast from 'react-hot-toast'
 
-// خارج از کامپوننت برای جلوگیری از تعریف مجدد
 const languages: Language[] = [
   { id: 1, lang: "English", keyLang: "en" },
   { id: 2, lang: "French", keyLang: "fr" },
@@ -43,7 +42,7 @@ const AnswerCard = () => {
         .then(() => {
           setCopied(true);
           toast.success("Copied to clipboard!");
-          setTimeout(() => setCopied(false), 1500); // بازخورد موقت
+          setTimeout(() => setCopied(false), 1500);
         })
         .catch(() => {
           toast.error("Failed to copy text.");
@@ -55,7 +54,7 @@ const AnswerCard = () => {
     if (!answer) return;
 
     const utterance = new SpeechSynthesisUtterance(answer);
-    const voice = voices.find(v => v.lang.startsWith(toLanguage)); // امن‌تر
+    const voice = voices.find(v => v.lang.startsWith(toLanguage));
 
     if (voice) {
       utterance.voice = voice;

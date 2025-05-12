@@ -68,13 +68,13 @@ const AnswerCard = () => {
   };
 
   return (
-    <div className="h-96 bg-[#040711] rounded-2xl p-8 lg:w-[600px]">
+    <div className="h-96 bg-[#0f1523] rounded-2xl p-8 lg:w-[600px]">
       <ul className="text-[#4D5562] flex pb-4 border-b border-[#4D5562] gap-x-4 font-semibold">
         {languages.map(lang => (
           <li
             key={lang.id}
-            className={`list-none text-sm cursor-pointer px-2 py-1 rounded-md transition-all duration-200 ${
-              toLanguage === lang.keyLang ? 'bg-red-500 text-white' : ''
+            className={`list-none text-sm cursor-pointer px-2 py-2 rounded-lg transition-all duration-200 ${
+              toLanguage === lang.keyLang ? 'bg-[#4c5563] text-white' : ''
             }`}
             onClick={() => setToLanguage(lang.keyLang)}
           >
@@ -88,20 +88,20 @@ const AnswerCard = () => {
       </p>
 
       <div className="w-full flex justify-between mt-10 items-center">
-        <div className="flex gap-x-4">
+        <div className="flex gap-x-2">
           <div
-            className="p-1 border border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer"
+            className="p-1 border-2 border-[#4D5562] flex items-center justify-center h-8 w-8 rounded-xl cursor-pointer"
             onClick={handleSpeak}
           >
-            <VolumeHigh size="18" color="#4D5562" />
+            <VolumeHigh size="18" color="#4D5562" variant='Bold'/>
           </div>
 
           <div
-            className={`p-1 border ${copied ? 'border-green-500' : 'border-[#4D5562]'} flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer`}
+            className={`p-1 border-2 ${copied ? 'border-green-500' : 'border-[#4D5562]'} flex items-center justify-center h-8 w-8 rounded-xl cursor-pointer`}
             onClick={handleCopyToClipboard}
             title={copied ? "Copied!" : "Copy to clipboard"}
           >
-            <Copy size="18" color={copied ? "#22c55e" : "#4D5562"} />
+            <Copy size="20" color={copied ? "#22c55e" : "#4D5562"}/>
           </div>
         </div>
       </div>

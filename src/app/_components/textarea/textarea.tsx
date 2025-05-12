@@ -37,7 +37,7 @@ const Textarea: React.FC<TextareaProps> = ({
       style={style}
       className={className}
     />
-    <p className='text-[#4D5562] flex w-full justify-end text-xs font-semibold'>{length}/{maxLength}</p>
+    <p className='text-[#4D5562] flex w-full justify-end text-sm font-semibold mb-3'>{length}/{maxLength}</p>
     </div>
   );
 };

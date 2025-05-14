@@ -11,6 +11,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.50.1",
     "axios": "^1.7.2",
+    "depcheck": "^1.4.7",
     "iconsax-react": "^0.0.8",
     "js-cookie": "^3.0.5",
     "next": "^14.2.4",
